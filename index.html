@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>SweetControl</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      /* Paleta premium (grafite + azul petróleo discreto) */
+      --bg: #070A0F;
+      --panel: rgba(14, 18, 26, 0.82);
+      --panelSolid: #0E121A;
+      --panelTop: rgba(10, 13, 19, 0.82);
+
+      --stroke: rgba(255,255,255,0.08);
+      --strokeStrong: rgba(255,255,255,0.12);
+
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.62);
+      --muted-2: rgba(255,255,255,0.46);
+
+      --primary: rgba(255,255,255,0.92);
+      --primaryText: #070A0F;
+
+      /* Accent elegante (teal/azul petróleo) */
+      --accent: #2DD4BF;
+      --accent2: #38BDF8;
+
+      --danger: #FB7185;
+
+      --shadow: 0 22px 80px rgba(0,0,0,.65);
+      --radius: 16px;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      margin:0;
+      background:
+        radial-gradient(900px 520px at 18% 10%, rgba(45,212,191,0.08), transparent 62%),
+        radial-gradient(900px 520px at 82% 12%, rgba(56,189,248,0.06), transparent 62%),
+        radial-gradient(1200px 900px at 50% -20%, rgba(255,255,255,0.04), transparent 60%),
+        var(--bg);
+      color: var(--text);
+    }
+
+    /* Top bar */
+    /* Top bar (mais profissional, menos "genérico") */
+    .topbar{
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: linear-gradient(180deg, rgba(10,13,19,0.82), rgba(10,13,19,0.62));
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--stroke);
+      padding: 14px 16px;
+    }
+
+    .topbar-inner{
+      width: 100%;
+      margin: 0;
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .logo{
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      gap: 10px;
+      min-width: 240px;
+    }
+
+    /* Logo em SVG (identidade própria) */
+    .mark{
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(34,197,94,0.22), rgba(255,255,255,0.06));
+      border: 1px solid rgba(34,197,94,0.26);
+      box-shadow: 0 18px 50px rgba(0,0,0,.45);
+      display:grid;
+      place-items:center;
+      overflow:hidden;
+    }
+
+    .brand{
+      text-align:left;
+      line-height: 1.1;
+    }
+    .brand .name{
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      font-size: 15px;
+    }
+    .brand .tag{
+      font-size: 12px;
+      color: rgba(154,164,175,0.9);
+      margin-top: 2px;
+    }
+
+    .top-actions{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:flex-end;
+      min-width: 360px;
+    }
+
+    /* Fullscreen layout */
+    html, body{ height: 100%; }
+    body{ min-height: 100vh; }
+
+    .container{
+      width: 100%;
+      margin: 0;
+      padding: 10px 10px 12px; /* mais “colado” à esquerda */
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 330px 1fr; /* remove coluna fixa do log */
+      gap: 12px;
+      align-items:start;
+      width: 100%;
+    }
+
+    .sidebar{ position: sticky; top: 74px; }
+    .table-card{ min-width: 0; }
+
+    /* Drawer do Log (não fica visível o tempo todo) */
+    .drawer-overlay{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(6px);
+      z-index: 80;
+      display:none;
+    }
+    .drawer{
+      position: fixed;
+      top: 0;
+      right: 0;
+      height: 100vh;
+      width: min(520px, 92vw);
+      background: linear-gradient(180deg, rgba(15,19,26,0.98), rgba(12,16,22,0.92));
+      border-left: 1px solid rgba(27,36,48,0.9);
+      box-shadow: -18px 0 70px rgba(0,0,0,.55);
+      z-index: 90;
+      transform: translateX(110%);
+      transition: transform .18s ease;
+      padding: 14px;
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+    }
+    .drawer.open{ transform: translateX(0); }
+    .drawer-overlay.open{ display:block; }
+
+    .drawer-header{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .drawer-title{
+      display:flex;
+      flex-direction:column;
+      gap: 2px;
+    }
+    .drawer-title strong{ font-size: 14px; letter-spacing: -0.01em; }
+    .drawer-title span{ font-size: 12px; color: rgba(154,164,175,0.9); }
+
+    .btn-slim{
+      padding: 10px 12px;
+      border-radius: 14px;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    /* Modal de período (mês/ano) */
+    .modal-overlay{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(6px);
+      z-index: 95;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 16px;
+    }
+    .modal-overlay.open{ display:flex; }
+    .modal{
+      width: min(520px, 92vw);
+      background: linear-gradient(180deg, rgba(15,19,26,0.96), rgba(12,16,22,0.92));
+      border: 1px solid rgba(27,36,48,0.95);
+      border-radius: 18px;
+      box-shadow: 0 30px 90px rgba(0,0,0,.65);
+      padding: 16px;
+    }
+    .modal h3{ margin:0 0 6px; font-size: 15px; letter-spacing:-0.02em; }
+    .modal .hint{ margin:0 0 12px; }
+    .modal .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .modal .actions{ display:flex; gap:10px; justify-content:flex-end; margin-top: 12px; }
+
+    /* Tabela ocupa mais altura (usando viewport inteiro) */
+    .table-wrap{
+      max-height: calc(100vh - 150px);
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px){
+      .grid{ grid-template-columns: 1fr; }
+      .sidebar{ position: static; }
+      .table-wrap{ max-height: 62vh; }
+      .top-actions{ min-width: 0; }
+    }
+
+    .card-title{
+      display:flex;
+      align-items:center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .card-title h3{
+      margin:0;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: var(--text);
+    }
+    .hint{
+      font-size: 12px;
+      color: rgba(154,164,175,0.75);
+    }
+
+    /* visual mais clean: esconda micro-legendas de ajuda */
+    .subhint{ display:none; }
+    #searchHint{ display:none; }
+    #addPersonHint{ display:none; }
+
+    /* tipografia mais suave */
+    body{
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* títulos menos “pesados” */
+    .card-title h3{
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    /* botão ghost mais discreto e “flat” */
+
+    .row{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      flex-wrap: wrap;
+    }
+
+    input{
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--stroke);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 11px 12px;
+      outline: none;
+      width: 100%;
+      transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+    input:focus{
+      border-color: rgba(45,212,191,0.35);
+      box-shadow: 0 0 0 4px rgba(45,212,191,0.10);
+      background: rgba(255,255,255,0.05);
+    }
+    input::placeholder{ color: var(--muted-2); }
+
+    select.select{
+      appearance: none;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(27,36,48,0.95);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 11px 12px;
+      outline: none;
+      width: 100%;
+      transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+    select.select:focus{
+      border-color: rgba(255,255,255,0.22);
+      box-shadow: 0 0 0 4px rgba(255,255,255,0.06);
+      background: rgba(255,255,255,0.06);
+    }
+
+    .btn{
+      border: 1px solid var(--strokeStrong);
+      background: rgba(255,255,255,0.10);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 11px 12px;
+      cursor:pointer;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      transition: opacity .12s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
+      user-select:none;
+      box-shadow: none;
+    }
+    .btn:hover{
+      background: rgba(255,255,255,0.14);
+      border-color: rgba(255,255,255,0.16);
+    }
+    .btn:hover{ opacity:.92; }
+    /* Sem "pulo" no clique (evita sensação de linha descendo) */
+    .btn:active{ transform: none; }
+
+    .btn-ghost{
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border: 1px solid var(--stroke);
+      font-weight: 600;
+    }
+
+    .btn-danger{
+      background: rgba(239,68,68,0.12);
+      color: #fecaca;
+      border: 1px solid rgba(239,68,68,0.25);
+    }
+
+    .btn-accent{
+      background: linear-gradient(180deg, rgba(45,212,191,0.22), rgba(45,212,191,0.12));
+      color: rgba(255,255,255,0.94);
+      border: 1px solid rgba(45,212,191,0.28);
+      box-shadow: 0 14px 36px rgba(0,0,0,.35);
+    }
+
+    /* Table */
+    .table-wrap{
+      overflow:auto;
+      border-radius: 14px;
+      border: 1px solid rgba(27,36,48,0.95);
+      /* importante: define a área de scroll para o sticky funcionar "dentro" dela */
+      max-height: calc(100vh - 210px);
+      background: rgba(0,0,0,0.12);
+    }
+
+    table{
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1120px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    thead th{
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: rgba(10,12,16,0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(27,36,48,0.95);
+      padding: 12px 10px;
+      text-align:left;
+      font-size: 12px;
+      color: rgba(154,164,175,0.95);
+      font-weight: 700;
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+
+    /* Opcional elegante: primeira coluna "Pessoa" fixa lateralmente */
+    .sticky-col{
+      position: sticky;
+      left: 0;
+      z-index: 6;
+      background: rgba(10,12,16,0.92);
+      backdrop-filter: blur(12px);
+      border-right: 1px solid rgba(27,36,48,0.9);
+    }
+
+    tbody td:first-child{
+      position: sticky;
+      left: 0;
+      z-index: 3;
+      background: rgba(12,16,22,0.88);
+      backdrop-filter: blur(10px);
+      border-right: 1px solid rgba(27,36,48,0.6);
+    }
+
+    tbody td{
+      border-bottom: 1px solid rgba(27,36,48,0.7);
+      padding: 10px;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    tbody tr:hover{
+      background: rgba(255,255,255,0.03);
+    }
+
+    .person{
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.03);
+      border-radius: 999px;
+      padding: 6px 8px;
+      min-height: 34px; /* estabiliza a altura da célula */
+    }
+
+    .count{
+      min-width: 20px;
+      text-align:center;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--text);
+      font-weight: 700;
+      font-size: 12px;
+    }
+
+    .mini{
+      width: 30px;
+      height: 28px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.82);
+      color: #0a0c10;
+      font-weight: 800;
+      cursor:pointer;
+      line-height: 0;
+      display:grid;
+      place-items:center;
+      transition: opacity .12s ease, transform .12s ease;
+      user-select:none;
+    }
+    .mini:hover{ opacity:.92; }
+    /* Sem "pulo" no clique (evita layout shift visual) */
+    .mini:active{ transform: none; }
+
+    .mini.minus{
+      background: rgba(255,255,255,0.08);
+      color: var(--text);
+      border: 1px solid var(--stroke);
+      font-weight: 800;
+    }
+
+    .total{
+      color: rgba(45,212,191,0.95);
+      font-weight: 900;
+      white-space: nowrap;
+      letter-spacing: -0.02em;
+    }
+
+    .log{
+      max-height: 380px;
+      overflow:auto;
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      padding-right: 6px;
+    }
+
+    .divider{
+      height: 1px;
+      background: var(--stroke);
+      margin: 10px 0;
+    }
+
+    /* Billing mode banner */
+    .mode{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(255,255,255,0.04);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* Responsive */
+    @media (max-width: 1200px){
+      .grid{ grid-template-columns: 1fr; }
+      .sidebar, .log-card{ position: static; }
+      .table-wrap{ max-height: 62vh; }
+      .topbar-inner{ gap: 8px; }
+      .logo{ justify-content:flex-start; }
+      .brand{ text-align:left; }
+    }
+
+    .field{ display:flex; flex-direction:column; gap:8px; }
+    .label{ font-size: 12px; color: var(--muted); font-weight: 700; letter-spacing: .04em; }
+    .subhint{ font-size: 12px; color: rgba(154,164,175,0.85); }
+    .kpis{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    .kpi{
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+    .kpi-label{ font-size: 12px; color: var(--muted); }
+    .kpi-value{ font-size: 18px; font-weight: 800; letter-spacing: -0.02em; margin-top: 2px; }
+
+    /* Flag de copiado (modo cobrança) */
+    .action-wrap{
+      display:flex;
+      align-items:center;
+      justify-content:flex-end;
+      gap: 10px;
+      white-space: nowrap;
+    }
+    .copied-flag{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      user-select:none;
+    }
+
+    /* Checkbox altamente visível (independente do navegador) */
+    .copied-flag input{
+      width: 18px;
+      height: 18px;
+      appearance: none;
+      -webkit-appearance: none;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.22);
+      background: rgba(255,255,255,0.06);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25);
+      display:grid;
+      place-items:center;
+      cursor: default;
+    }
+    .copied-flag input::after{
+      content: "";
+      width: 9px;
+      height: 5px;
+      border-left: 2px solid transparent;
+      border-bottom: 2px solid transparent;
+      transform: rotate(-45deg);
+      margin-top: -1px;
+    }
+    .copied-flag input:checked{
+      background: rgba(45,212,191,0.22);
+      border-color: rgba(45,212,191,0.55);
+      box-shadow: 0 0 0 4px rgba(45,212,191,0.10);
+    }
+    .copied-flag input:checked::after{
+      border-left-color: rgba(255,255,255,0.95);
+      border-bottom-color: rgba(255,255,255,0.95);
+    }
+
+    /* Badge textual "COPIADO" sem causar deslocamento (não muda display) */
+    .copied-badge{
+      display:inline-flex;          /* sempre ocupa espaço */
+      visibility:hidden;            /* escondido por padrão */
+      opacity: 0;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(45,212,191,0.40);
+      background: rgba(45,212,191,0.14);
+      color: rgba(255,255,255,0.92);
+      font-weight: 800;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      transition: opacity .12s ease;
+    }
+    .copied-badge.on{
+      visibility: visible;
+      opacity: 1;
+    }
+
+    /* Botão de copiar com largura estável (evita "andar" quando muda o texto) */
+    .copy-btn{
+      min-width: 170px;
+      text-align: center;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="logo" aria-label="SweetControl">
+        <div class="mark" aria-hidden="true">
+          <!-- Logo exclusiva (SVG) -->
+          <svg width="40" height="40" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <defs>
+              <linearGradient id="g" x1="6" y1="6" x2="38" y2="38" gradientUnits="userSpaceOnUse">
+                <stop stop-color="rgba(34,197,94,0.95)"/>
+                <stop offset="1" stop-color="rgba(34,197,94,0.18)"/>
+              </linearGradient>
+            </defs>
+            <path d="M22 6C13.163 6 6 13.163 6 22s7.163 16 16 16 16-7.163 16-16S30.837 6 22 6Z" stroke="rgba(255,255,255,0.12)" stroke-width="1.2"/>
+            <path d="M28.8 14.8c-3.2-1.6-8.2-.9-10.6 2.4-2.1 2.8-1.4 6.1 1.1 7.7 2.4 1.5 5.8 1.3 8.2-.4 1.2-.9 1.6-1.9 1.4-2.6-.3-1.1-1.8-1.3-3.1-1.1" stroke="url(#g)" stroke-width="2.2" stroke-linecap="round"/>
+            <path d="M16.3 29.2c3.1 1.8 8.6 1.5 11.4-2.2" stroke="rgba(34,197,94,0.55)" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="brand">
+          <div class="name">SweetControl</div>
+          <div class="tag">Lançamentos & Cobrança • Controle rápido</div>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <span class="mode" id="modeBadge">Modo: Lançamentos</span>
+        <button class="btn btn-ghost btn-slim" id="btnLog" type="button">LOG</button>
+        <button class="btn btn-accent" id="btnFinalize" type="button">FINALIZAR</button>
+        <button class="btn btn-ghost" id="btnBack" type="button" style="display:none;">VOLTAR</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="grid">
+      <!-- Sidebar: Controles -->
+      <aside class="card sidebar" aria-label="Controles">
+        <div class="card-title">
+          <h3>Controles</h3>
+          <div class="hint"> </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="novaPessoa">Adicionar pessoa</label>
+          <div class="row">
+            <input id="novaPessoa" placeholder="Ex: Nome (1234)" autocomplete="off" />
+            <button class="btn btn-ghost" id="btnAddPessoa" type="button">Adicionar</button>
+          </div>
+          <div class="subhint" id="addPersonHint">Dica: pressione Enter para adicionar.</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="field">
+          <label class="label" for="searchPessoa">Pesquisar na lista</label>
+          <input id="searchPessoa" placeholder="Digite um nome..." autocomplete="off" />
+          <div class="subhint" id="searchHint">Filtra em tempo real (ignora maiúsculas/minúsculas e acentos).</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="kpis">
+          <div class="kpi">
+            <div class="kpi-label">Pessoas na lista</div>
+            <div class="kpi-value" id="kpiTotalPessoas">0</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Exibindo agora</div>
+            <div class="kpi-value" id="kpiExibindo">0</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="row" style="justify-content:space-between; gap:10px;">
+          <button class="btn btn-ghost" id="btnExport" type="button" style="flex:1;">EXPORTAR</button>
+          <button class="btn btn-ghost" id="btnImport" type="button" style="flex:1;">IMPORTAR</button>
+          <input id="importFile" type="file" accept="application/json" style="display:none;" />
+        </div>
+      </aside>
+
+      <!-- Centro: Tabela -->
+      <section class="card table-card" aria-label="Tabela">
+        <div class="card-title">
+          <h3 id="tableTitle">Lançamentos</h3>
+          <div class="hint" id="tableHint"></div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="table-wrap" id="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th class="sticky-col" style="min-width:260px;">Pessoa</th>
+                <th>Trento</th>
+                <th>Ouro Branco</th>
+                <th>Paçoquita</th>
+                <th>Tortuguita</th>
+                <th>Bolinha de Bacon</th>
+                <th>Bala de Goma</th>
+                <th>Bananinha</th>
+                <th>Bolinho</th>
+                <th style="min-width:120px;">Total</th>
+                <th style="min-width:150px;"></th>
+              </tr>
+            </thead>
+            <tbody id="tabela"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Drawer do Log -->
+  <div class="drawer-overlay" id="logOverlay" aria-hidden="true"></div>
+  <aside class="drawer" id="logDrawer" aria-label="Log">
+    <div class="drawer-header">
+      <div class="drawer-title">
+        <strong>Log</strong>
+        <span>Registro com horário de cada ajuste</span>
+      </div>
+      <button class="btn btn-ghost btn-slim" id="btnCloseLog" type="button">Fechar</button>
+    </div>
+    <div class="divider"></div>
+    <div class="log" id="log"></div>
+  </aside>
+
+  <!-- Modal: escolher mês/ano ao finalizar -->
+  <div class="modal-overlay" id="periodOverlay" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="periodTitle">
+      <h3 id="periodTitle">Período da cobrança</h3>
+      <div class="hint">Informe mês e ano para usar na mensagem de cobrança.</div>
+
+      <div class="grid2">
+        <div class="field">
+          <label class="label" for="periodMonth">Mês</label>
+          <select id="periodMonth" class="select">
+            <option value="01">01</option><option value="02">02</option><option value="03">03</option><option value="04">04</option>
+            <option value="05">05</option><option value="06">06</option><option value="07">07</option><option value="08">08</option>
+            <option value="09">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="label" for="periodYear">Ano</label>
+          <input id="periodYear" inputmode="numeric" placeholder="Ex: 2026" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-ghost" id="btnCancelPeriod" type="button">Cancelar</button>
+        <button class="btn btn-accent" id="btnConfirmPeriod" type="button">Entrar em Cobrança</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // Produtos (preços fixos conforme seu PDF)
+  const produtos = [
+    { name:"XIPÃO", valor:3 },
+    { name:"PIPOCA", valor:3 },
+    { name:"GULÃO", valor:6 },
+    { name:"BATATA", valor:2.5 },
+    { name:"TRIDENT", valor:3.5 },
+    { name:"BUBBALOO", valor:2.5 },
+    { name:"MENTOS", valor:3 },
+    { name:"CHICLETE", valor:0.5 }
+    { name:"PACOTE BALAS", valor:2 }
+    { name:"DOCE DE PÉ DE MOLEQUE", valor:0.75 }
+    { name:"DOCE CANUDO", valor:3.5 }
+  ];
+
+  // Lista padrão (base: arquivo que você anexou; aqui embutimos e limpamos automaticamente)
+  // Fonte: LISTA DE NOMES.txt :contentReference[oaicite:1]{index=1}
+  const RAW_NOMES = `
+Alice Alves de Souza (4482)
+Alice (4482)
+Aline Passos (4241)
+Aline Santos (3335)
+Allan Felipp Gomes Santos (4564)        
+Amanda Gabriela Gomes (4142)               
+Alex Willian de Moura Precioso (4019)             
+Ana Paula Braga da Silva (4446)             
+Anna Santos (4451)             
+Ana Luiza (3211)         
+Andreuza-R$                
+Antonia Leticia (4369)               
+Bai              
+Beatriz Eviny             
+Bianca Chrystine Pereira da Silva Gomes (4639) 
+Bruno H. O. Pereira (4207)              
+Bruno Stefano da Silva Pinto -  (3561)           
+Bruno Ytalo Pereira (4605)-R$                
+Cadu (4110)-R$                
+Caleb Emanuel Lima de Paula (4670) (31972667723)
+Carlos Bosco (4631)-R$                
+Caroline dos Santos Nascimento - (4600)
+Cecilia          
+Claudios Luiz Ramos Tavares (4692)           
+Cristiane Bani (2791)              
+Day - N1          
+Daiana Kerlei            
+Dayana - (4156)             
+Dayana - (4157)              
+Danilo (3837)            
+Danielle  (5 Andar)               
+Dulcimar              
+Edilaine               
+Eduarda Silva (4570)            
+Eliete (560)-R$                
+Emerson Reis-R$                
+Eros-R$                
+Fares Ojeda-R$                
+Flavia Morais (4640)-R$                
+Flavia Lopes de Oliveira (4484)-R$                
+Gabriel (4674)-R$                
+Gabriel Estevam (4529)-R$                
+Gabrielle Oliveira (4745) 3,00 R$              1
+Gabrielle Cristina Faria de Souza - (4327)-R$                
+Gabrielle Curi - (4625)-R$                
+Gabriel Rodrigues (4450)-R$                
+Gledson E (4597)-R$                
+Giovanna -R$                
+Gisele William de Oliveira Santos (4469)-R$                
+Gustavo Meira-R$                
+Gustavo Santos (3954)-R$                
+Grace Kelly-R$                
+Heitor Xavier 18,00 R$            6
+Igor Matheus (4613)-R$                
+Ilsamar (355)-R$                
+Isabelly Luizy (4414) 6,00 R$              2
+Irenilde Cristina-R$                
+Isamara (4277)-R$                
+Iuli Debora dos Santos Fialho (4377)            
+Jefferson Antonio Batista (4320)            
+Jenifer Larissa Lomba Almeida - (4599)            
+Jessica abibe-R$                
+Jessica Santos (2772)-R$                
+Jorge Nicolas (4698)-R$                
+Jojo - Lindão (2255)-R$                
+Juan-R$                
+Juliana (1741)-R$                
+Julia Muroni de Freitas (4461)-R$                
+Juliana Coelho (4547)-R$                
+Juliana Fialho (3723)-R$                
+Julia G (4412)-R$                
+Jussara (4161)-R$                
+Kenia-R$                
+Kevin Erick Stephan da Silva Cruz (4557)-R$                
+Larissa de Jesus Silva (4590)-R$                
+Larissa Neves (4589)-R$                
+Laryssa F. (4514)-R$                
+Laura Pesso-R$                
+Lauranalha-R$                
+Leandro Henrique dos Santos (3909)-R$                
+Leila Martins (4545)-R$                
+Leo Torres 3,00 R$              1
+Leonardo Felipe Moreira da Silva (4592)-R$                
+Leonardo Vinicius Constantino Gomes (4630)-R$                
+Livia (4562)-R$                
+Lorena de Paula (3841)-R$                
+Lorena Marques-R$                
+Luan Oliveira (4382)-R$                
+Luan Marco-R$                
+Luana Vitoria Reis Silva - (4591) 6,00 R$              2
+Maissa Hanna Ogando Cirilo (4419)-R$                
+Marco Aurelio - Kuririm-R$                
+Maria Eduarda - Duda (4219)-R$                
+Maria Laura (4673)-R$                
+Mariana Afonseca (4550)-R$                
+Mariana Oliveira Monteiro - (4493)-R$                
+Mateus Lima de Souza (4395)-R$                
+Matheus Jaques Lins (4538)-R$                
+Matheus Ryan (4051)-R$                
+Mayara Amaral Novaes (2292)-R$                
+Melissa Amorim (4526)-R$                
+Melissa Melina Estevam Reis (4504)-R$                
+Meyre-R$                
+Michelle - (Estagiária 1)-R$                
+Naiara (3981)-R$                
+Nagila-R$                
+Natalia Cardoso (4714)-R$                
+Natalia Oliveira Souza - (4643)-R$                
+Paulo Porcino (3941)
+Pablo Caetano
+Paula Rafaela
+Pedro Nunes (4666)
+Pedro Barbosa
+Poliana Silverio Santos Martins (4448)
+Priscila Rezende (3812)
+Puff
+Rafael Trovão
+Rafaela Mota
+Rafaella Teodoro (4683)
+Raquel Cesar
+Ray
+Raissa Meres (4702)
+Rayane Pinheiro - (4567)
+Ricardo Pacheco (Tches) (3695)
+Renan Ferreira de Alencar (4357)
+Renata Soares Carvalho (4636)
+Renato Andrade
+Rener Ferreira de Alencar - (4151)
+Roberto De Lorenzo (1289)
+Rosileide Santos Figueiredo (2621)
+Rozilene Silva Camilo - (4620)
+Sam - (4621)
+Samara (8 Andar)
+Samuel Faria (4664)
+Shirley Natalicia Fonseca Santos (4485)
+Sthefane Marques Ricardo (4275)
+Sumaia Mafra (4267)
+Susy
+Tatiane
+Taynara (4236)
+Theresa
+Thais Cristina Gaspar Herculano (3042)
+Thalita Gabrielle de Sousa Braga (4594)
+Thalles (4194)
+Thayna Silva (4558)
+Thiago Benedito (4686)
+Tiago Feitosa (4483)
+Vanessa Marisa Sousa Silva (3682)
+Vanessa Santos (4383)
+Vanessa Bertoldo (4577)
+Vicemaria
+Vinicius Miranda (4137)
+Waismann
+`;
+
+  function cleanNameLine(line){
+    // remove "R$", valores, múltiplos espaços e traços finais
+    let s = line.trim();
+    if(!s) return null;
+
+    // remove quaisquer "R$" e o que vier depois na mesma linha
+    s = s.replace(/R\$\s?.*$/i, "").trim();
+
+    // remove valores soltos tipo "3,00" / "18,00" / "6" no final
+    s = s.replace(/\s+\d+,\d+\s*$/g, "").trim();
+    s = s.replace(/\s+\d+\s*$/g, "").trim();
+
+    // remove sufixos "-R$" e traços duplicados
+    s = s.replace(/-+\s*$/g, "").trim();
+    s = s.replace(/-R\$\s*$/i, "").trim();
+
+    // colapsa espaços
+    s = s.replace(/\s+/g, " ").trim();
+
+    // se ficou vazio, ignora
+    if(!s) return null;
+
+    return s;
+  }
+
+  function normText(s){
+    return (s || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "") // remove acentos
+      .toLowerCase()
+      .trim();
+  }
+
+  let pessoas = RAW_NOMES
+    .split("\n")
+    .map(cleanNameLine)
+    .filter(Boolean);
+
+  // busca / filtro
+  let filtroNome = "";
+
+  // estado
+  let vendas = {}; // {pessoa: {produto: qtd}}
+  let logs = [];
+  let billingMode = false;
+
+  // Período escolhido ao finalizar (MM/YYYY). Se vazio, usa mês/ano atual.
+  let billingPeriod = "";
+
+  // Marca quem já teve mensagem copiada no modo cobrança
+  // { "Nome da Pessoa": true }
+  let copiedStatus = {};
+
+  function timeNow(){
+    return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  }
+
+  function logEvent(msg){
+    logs.unshift(`${timeNow()} • ${msg}`);
+    // limita o log pra não crescer infinito
+    if(logs.length > 400) logs = logs.slice(0, 400);
+  }
+
+  function addPessoa(){
+    const input = document.getElementById("novaPessoa");
+    const nome = (input.value || "").trim();
+    if(!nome) return;
+
+    const key = normText(nome);
+    const jaExiste = pessoas.some(p => normText(p) === key);
+    if(jaExiste){
+      logEvent(`Pessoa já existe: ${nome}`);
+      input.select();
+      renderLog();
+      return;
+    }
+
+    pessoas.push(nome);
+    input.value = "";
+    logEvent(`Pessoa adicionada: ${nome}`);
+    render();
+  }
+
+  function inc(pessoa, produto){
+    if(!vendas[pessoa]) vendas[pessoa] = {};
+    if(!vendas[pessoa][produto]) vendas[pessoa][produto] = 0;
+
+    vendas[pessoa][produto] += 1;
+    logEvent(`${pessoa} +1 ${produto}`);
+    renderRowUpdate(pessoa);
+    renderLog();
+  }
+
+  function dec(pessoa, produto){
+    if(!vendas[pessoa] || !vendas[pessoa][produto]) return;
+
+    vendas[pessoa][produto] -= 1;
+    if(vendas[pessoa][produto] <= 0){
+      delete vendas[pessoa][produto];
+    }
+    // se a pessoa ficou sem itens, limpa objeto
+    if(vendas[pessoa] && Object.keys(vendas[pessoa]).length === 0){
+      delete vendas[pessoa];
+    }
+
+    logEvent(`${pessoa} -1 ${produto}`);
+    renderRowUpdate(pessoa);
+    renderLog();
+  }
+
+  function qtd(pessoa, produto){
+    return (vendas[pessoa] && vendas[pessoa][produto]) ? vendas[pessoa][produto] : 0;
+  }
+
+  function totalPessoa(pessoa){
+    if(!vendas[pessoa]) return 0;
+    let total = 0;
+    for(const prod of Object.keys(vendas[pessoa])){
+      const pr = produtos.find(x => x.name === prod);
+      if(!pr) continue;
+      total += pr.valor * vendas[pessoa][prod];
+    }
+    return total;
+  }
+
+  function anyCompra(pessoa){
+    return totalPessoa(pessoa) > 0;
+  }
+
+  function finalizar(){
+    // abre modal para escolher mês/ano
+    openPeriodModal();
+  }
+
+  function confirmarFinalizar(periodStr){
+    billingPeriod = periodStr || "";
+
+    billingMode = true;
+    document.getElementById("btnFinalize").style.display = "none";
+    document.getElementById("btnBack").style.display = "inline-flex";
+    document.getElementById("modeBadge").textContent = "Modo: Cobrança";
+    document.getElementById("tableTitle").textContent = "Cobrança (somente quem comprou)";
+    document.getElementById("tableHint").textContent = "";
+    render();
+  }
+
+  function voltar(){
+    billingMode = false;
+    billingPeriod = "";
+
+    document.getElementById("btnFinalize").style.display = "inline-flex";
+    document.getElementById("btnBack").style.display = "none";
+    document.getElementById("modeBadge").textContent = "Modo: Lançamentos";
+    document.getElementById("tableTitle").textContent = "Lançamentos";
+    document.getElementById("tableHint").textContent = "";
+
+    render();
+  }
+
+  function gerarMensagemTexto(pessoa){
+    const total = totalPessoa(pessoa);
+    const hoje = new Date();
+    const data = hoje.toLocaleDateString('pt-BR');
+
+    const mesAtual = hoje.toLocaleDateString('pt-BR', { month: '2-digit', year: 'numeric' }).replace("/", "/");
+    const periodo = billingPeriod || mesAtual;
+
+    // lista itens comprados
+    const itens = [];
+    const itensPessoa = vendas[pessoa] || {};
+    for(const prodName of Object.keys(itensPessoa)){
+      const q = itensPessoa[prodName] || 0;
+      if(q <= 0) continue;
+
+      const pr = produtos.find(x => x.name === prodName);
+      const unit = pr ? pr.valor : 0;
+      const sub = unit * q;
+
+      itens.push(`- ${prodName} x${q} (R$ ${unit.toFixed(2)}) = R$ ${sub.toFixed(2)}`);
+    }
+
+    const blocoItens = itens.length ? itens.join("\n") : "- (sem itens)";
+
+    return `Bom dia, tudo bem?
+
+Segue a cobrança de Doces e Salgadinhos referente ao período ${periodo}.
+Data de emissão: ${data}
+
+Cliente: ${pessoa}
+
+Itens:
+${blocoItens}
+
+Total: R$ ${total.toFixed(2)}
+
+Muito obrigado pela preferência 🙂 
+Por favor, assim que fizer o pagamento me dê um OK aqui pelo Discord, obrigado!
+
+PIX (chave): humberto_mgbrasil@yahoo.com.br
+`;
+  }
+
+  function abrirJanelaCobranca(pessoa){
+    const total = totalPessoa(pessoa);
+    if(total <= 0) return;
+
+    const msg = gerarMensagemTexto(pessoa);
+
+    const win = window.open("", "_blank", "width=520,height=760");
+    win.document.write(`
+      <html>
+      <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1"/>
+        <title>Cobrança - ${pessoa}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+        <style>
+          body{ font-family:Inter; margin:0; background:#0a0c10; color:#e7eaee; padding:18px; }
+          .card{ background:#0f131a; border:1px solid #1b2430; border-radius:14px; padding:14px; }
+          h2{ margin:0 0 6px; font-size:16px; }
+          .muted{ color:#9aa4af; font-size:12px; }
+          pre{ white-space:pre-wrap; background:rgba(255,255,255,0.03); border:1px solid #1b2430; border-radius:12px; padding:12px; color:#e7eaee; }
+          img{ max-width: 260px; border-radius: 12px; border:1px solid #1b2430; background:#fff; padding:10px; }
+          .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:10px; }
+          button{ background:rgba(255,255,255,0.88); color:#0a0c10; border:1px solid rgba(255,255,255,0.12);
+                  border-radius:12px; padding:10px 12px; cursor:pointer; font-weight:700; }
+          button:hover{ opacity:.92; }
+          .ghost{ background:rgba(255,255,255,0.06); color:#e7eaee; border:1px solid #1b2430; font-weight:700; }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <h2>Cobrança</h2>
+          <div class="muted">${pessoa} • Total: R$ ${total.toFixed(2)}</div>
+
+          <div class="row">
+            <button id="copyBtn">Copiar mensagem</button>
+            <button class="ghost" onclick="window.close()">Fechar</button>
+          </div>
+
+          <div style="margin-top:12px;">
+            <pre id="msgBox"></pre>
+          </div>
+
+          <div style="margin-top:12px;">
+            <div class="muted" style="margin-bottom:8px;">QR Code PIX (anexe no Discord junto da mensagem)</div>
+            <img src="PIX.png" alt="QR Code PIX"/>
+          </div>
+        </div>
+
+        <script>
+          const msg = ${JSON.stringify(msg)};
+          document.getElementById("msgBox").textContent = msg;
+
+          document.getElementById("copyBtn").addEventListener("click", async () => {
+            try{
+              await navigator.clipboard.writeText(msg);
+              document.getElementById("copyBtn").textContent = "Copiado!";
+              setTimeout(()=>document.getElementById("copyBtn").textContent="Copiar mensagem", 1200);
+            }catch(e){
+              alert("Não consegui copiar automaticamente. Selecione o texto e copie manualmente.");
+            }
+          });
+        <\/script>
+      </body>
+      </html>
+    `);
+    win.document.close();
+  }
+
+  function renderLog(){
+    document.getElementById("log").innerHTML = logs.map(x => `${x}`).join("<br>");
+  }
+
+  function renderRowUpdate(_pessoa){
+    // Para simplificar e manter robusto, re-render completo em modo cobrança/lancamentos
+    // (o dataset pode ser grande; se quiser, otimizo por linha depois)
+    render();
+  }
+
+  function render(){
+    const tbody = document.getElementById("tabela");
+    tbody.innerHTML = "";
+
+    const baseList = billingMode ? pessoas.filter(anyCompra) : pessoas;
+
+    // aplica filtro (ignorando acentos / case)
+    const q = normText(filtroNome);
+    const list = q
+      ? baseList.filter(p => normText(p).includes(q))
+      : baseList;
+
+    // KPIs
+    const kpiTotal = document.getElementById("kpiTotalPessoas");
+    const kpiExib = document.getElementById("kpiExibindo");
+    if(kpiTotal) kpiTotal.textContent = String(pessoas.length);
+    if(kpiExib) kpiExib.textContent = String(list.length);
+
+    for(const p of list){
+      const tr = document.createElement("tr");
+
+      // evita XSS por nome colado (segurança)
+      const tdPessoa = document.createElement("td");
+      tdPessoa.className = "person";
+      tdPessoa.textContent = p;
+      tr.appendChild(tdPessoa);
+
+      for(const prod of produtos){
+        const qtt = qtd(p, prod.name);
+        const td = document.createElement("td");
+
+        const pill = document.createElement("div");
+        pill.className = "pill";
+
+        const count = document.createElement("span");
+        count.className = "count";
+        count.textContent = String(qtt);
+
+        pill.appendChild(count);
+
+        if(!billingMode){
+          const btnMinus = document.createElement("button");
+          btnMinus.type = "button";
+          btnMinus.className = "mini minus";
+          btnMinus.title = "Remover 1";
+          btnMinus.textContent = "–";
+          btnMinus.dataset.action = "dec";
+          btnMinus.dataset.pessoa = p;
+          btnMinus.dataset.prod = prod.name;
+
+          const btnPlus = document.createElement("button");
+          btnPlus.type = "button";
+          btnPlus.className = "mini";
+          btnPlus.title = "Adicionar 1";
+          btnPlus.textContent = "+";
+          btnPlus.dataset.action = "inc";
+          btnPlus.dataset.pessoa = p;
+          btnPlus.dataset.prod = prod.name;
+
+          pill.appendChild(btnMinus);
+          pill.appendChild(btnPlus);
+        }
+
+        td.appendChild(pill);
+        tr.appendChild(td);
+      }
+
+      const total = totalPessoa(p);
+
+      const tdTotal = document.createElement("td");
+      tdTotal.className = "total";
+      tdTotal.textContent = `R$ ${total.toFixed(2)}`;
+      tr.appendChild(tdTotal);
+
+      const tdAcao = document.createElement("td");
+
+      if(total > 0){
+        const wrap = document.createElement("div");
+        wrap.className = "action-wrap";
+
+        const btnCopy = document.createElement("button");
+        btnCopy.type = "button";
+        btnCopy.className = "btn btn-ghost copy-btn";
+        btnCopy.textContent = "COPIAR MENSAGEM";
+        btnCopy.dataset.action = "copy";
+        btnCopy.dataset.pessoa = p;
+
+        wrap.appendChild(btnCopy);
+
+        // Checkbox só no modo cobrança (pra não poluir lançamentos)
+        if(billingMode){
+          const label = document.createElement("label");
+          label.className = "copied-flag";
+
+          const chk = document.createElement("input");
+          chk.type = "checkbox";
+          chk.disabled = true;
+          chk.checked = !!copiedStatus[p];
+
+          const txt = document.createElement("span");
+          txt.textContent = "Copiado";
+
+          const badge = document.createElement("span");
+          badge.className = "copied-badge" + (copiedStatus[p] ? " on" : "");
+          badge.textContent = "COPIADO";
+
+          label.appendChild(chk);
+          label.appendChild(txt);
+          wrap.appendChild(label);
+          wrap.appendChild(badge);
+        }
+
+        tdAcao.appendChild(wrap);
+      }else{
+        const span = document.createElement("span");
+        span.className = "hint";
+        span.textContent = "—";
+        tdAcao.appendChild(span);
+      }
+
+      tr.appendChild(tdAcao);
+
+      tbody.appendChild(tr);
+    }
+
+    renderLog();
+  }
+
+  // Drawer Log
+  function openLog(){
+    document.getElementById("logOverlay").classList.add("open");
+    document.getElementById("logDrawer").classList.add("open");
+    document.getElementById("logOverlay").setAttribute("aria-hidden", "false");
+  }
+  function closeLog(){
+    document.getElementById("logOverlay").classList.remove("open");
+    document.getElementById("logDrawer").classList.remove("open");
+    document.getElementById("logOverlay").setAttribute("aria-hidden", "true");
+  }
+
+  // Modal período (mês/ano)
+  function openPeriodModal(){
+    const ov = document.getElementById("periodOverlay");
+    const month = document.getElementById("periodMonth");
+    const year = document.getElementById("periodYear");
+
+    const now = new Date();
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const yy = String(now.getFullYear());
+
+    // pré-preenche com mês/ano atual
+    month.value = mm;
+    year.value = yy;
+
+    ov.classList.add("open");
+    ov.setAttribute("aria-hidden", "false");
+    year.focus();
+  }
+  function closePeriodModal(){
+    const ov = document.getElementById("periodOverlay");
+    ov.classList.remove("open");
+    ov.setAttribute("aria-hidden", "true");
+  }
+
+  function buildPeriod(){
+    const month = (document.getElementById("periodMonth").value || "").trim();
+    let year = (document.getElementById("periodYear").value || "").trim();
+
+    // sanitiza ano
+    year = year.replace(/[^\d]/g, "");
+    if(year.length !== 4) year = String(new Date().getFullYear());
+
+    const mm = (month && month.length === 2) ? month : String(new Date().getMonth()+1).padStart(2,"0");
+    return `${mm}/${year}`;
+  }
+
+  async function copyTextToClipboard(text){
+    // tenta Clipboard API
+    try{
+      await navigator.clipboard.writeText(text);
+      return true;
+    }catch(_e){
+      // fallback antigo
+      try{
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.top = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        return ok;
+      }catch(_e2){
+        return false;
+      }
+    }
+  }
+
+  // Eventos UI (mais robusto do que onclick inline)
+  const tbodyEl = document.getElementById("tabela");
+  if(tbodyEl){
+    tbodyEl.addEventListener("click", async (ev) => {
+      const btn = ev.target.closest("button[data-action]");
+      if(!btn) return;
+
+      const action = btn.dataset.action;
+      const pessoa = btn.dataset.pessoa;
+      const prod = btn.dataset.prod;
+
+      if(action === "inc") return inc(pessoa, prod);
+      if(action === "dec") return dec(pessoa, prod);
+
+      if(action === "copy"){
+        const msg = gerarMensagemTexto(pessoa);
+        const ok = await copyTextToClipboard(msg);
+
+        if(ok){
+          copiedStatus[pessoa] = true; // marca como copiado
+
+          const old = btn.textContent;
+          btn.textContent = "COPIADO ✓";
+          setTimeout(()=> btn.textContent = old, 1200);
+
+          logEvent(`${pessoa} • mensagem copiada`);
+          render(); // atualiza checkbox/estado visual
+        }else{
+          alert("Não consegui copiar automaticamente. Selecione e copie manualmente.");
+        }
+        return;
+      }
+    });
+  }
+
+  const btnAdd = document.getElementById("btnAddPessoa");
+  if(btnAdd){
+    btnAdd.addEventListener("click", () => addPessoa());
+  }
+
+  const inputNova = document.getElementById("novaPessoa");
+  if(inputNova){
+    inputNova.addEventListener("keydown", (e) => {
+      if(e.key === "Enter"){
+        e.preventDefault();
+        addPessoa();
+      }
+    });
+  }
+
+  const inputSearch = document.getElementById("searchPessoa");
+  if(inputSearch){
+    inputSearch.addEventListener("input", (e) => {
+      filtroNome = e.target.value || "";
+      render();
+    });
+  }
+
+  // Botões do header (sem onclick inline)
+  const btnFinalize = document.getElementById("btnFinalize");
+  if(btnFinalize) btnFinalize.addEventListener("click", () => finalizar());
+
+  const btnBack = document.getElementById("btnBack");
+  if(btnBack) btnBack.addEventListener("click", () => voltar());
+
+  const btnLog = document.getElementById("btnLog");
+  if(btnLog) btnLog.addEventListener("click", () => openLog());
+
+  const btnCloseLog = document.getElementById("btnCloseLog");
+  if(btnCloseLog) btnCloseLog.addEventListener("click", () => closeLog());
+
+  const logOverlay = document.getElementById("logOverlay");
+  if(logOverlay) logOverlay.addEventListener("click", () => closeLog());
+
+  const btnCancelPeriod = document.getElementById("btnCancelPeriod");
+  if(btnCancelPeriod) btnCancelPeriod.addEventListener("click", () => closePeriodModal());
+
+  const periodOverlay = document.getElementById("periodOverlay");
+  if(periodOverlay) periodOverlay.addEventListener("click", (e) => {
+    if(e.target === periodOverlay) closePeriodModal();
+  });
+
+  const btnConfirmPeriod = document.getElementById("btnConfirmPeriod");
+  if(btnConfirmPeriod) btnConfirmPeriod.addEventListener("click", () => {
+    const period = buildPeriod();
+    closePeriodModal();
+    confirmarFinalizar(period);
+  });
+
+  // Export / Import (backup local em JSON)
+  function buildExportPayload(){
+    return {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      pessoas,
+      vendas,
+      logs,
+      billingMode,
+      billingPeriod,
+      copiedStatus
+    };
+  }
+
+  function downloadJson(filename, obj){
+    const json = JSON.stringify(obj, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    URL.revokeObjectURL(url);
+  }
+
+  function safeArray(v){ return Array.isArray(v) ? v : []; }
+  function safeObj(v){ return (v && typeof v === "object" && !Array.isArray(v)) ? v : {}; }
+
+  function applyImportedState(data){
+    // validação defensiva (evita quebrar o app por JSON inválido)
+    pessoas = safeArray(data.pessoas).filter(Boolean);
+    vendas = safeObj(data.vendas);
+    logs = safeArray(data.logs).filter(Boolean);
+
+    billingMode = !!data.billingMode;
+    billingPeriod = typeof data.billingPeriod === "string" ? data.billingPeriod : "";
+    copiedStatus = safeObj(data.copiedStatus);
+
+    // garante botões/labels coerentes com o modo
+    if(billingMode){
+      document.getElementById("btnFinalize").style.display = "none";
+      document.getElementById("btnBack").style.display = "inline-flex";
+      document.getElementById("modeBadge").textContent = "Modo: Cobrança";
+      document.getElementById("tableTitle").textContent = "Cobrança (somente quem comprou)";
+      document.getElementById("tableHint").textContent = "";
+    }else{
+      document.getElementById("btnFinalize").style.display = "inline-flex";
+      document.getElementById("btnBack").style.display = "none";
+      document.getElementById("modeBadge").textContent = "Modo: Lançamentos";
+      document.getElementById("tableTitle").textContent = "Lançamentos";
+      document.getElementById("tableHint").textContent = "";
+    }
+
+    logEvent("Importação concluída (estado restaurado)");
+    render();
+  }
+
+  const btnExport = document.getElementById("btnExport");
+  if(btnExport){
+    btnExport.addEventListener("click", () => {
+      const payload = buildExportPayload();
+      const stamp = new Date().toISOString().slice(0,19).replace(/[:T]/g,"-");
+      downloadJson(`sweetcontrol-backup-${stamp}.json`, payload);
+      logEvent("Exportação gerada");
+      renderLog();
+    });
+  }
+
+  const btnImport = document.getElementById("btnImport");
+  const importFile = document.getElementById("importFile");
+  if(btnImport && importFile){
+    btnImport.addEventListener("click", () => importFile.click());
+
+    importFile.addEventListener("change", async () => {
+      const file = importFile.files && importFile.files[0];
+      importFile.value = ""; // permite re-importar o mesmo arquivo depois
+      if(!file) return;
+
+      try{
+        const text = await file.text();
+        const data = JSON.parse(text);
+
+        // versão simples (para evolução futura sem quebrar)
+        if(!data || typeof data !== "object" || (data.version && data.version !== 1)){
+          alert("Arquivo de importação inválido ou versão não suportada.");
+          return;
+        }
+
+        applyImportedState(data);
+      }catch(e){
+        alert("Não consegui importar. Verifique se o arquivo é um JSON válido gerado pelo EXPORTAR.");
+      }
+    });
+  }
+
+  // init
+  logEvent(`Lista padrão carregada (${pessoas.length} pessoas)`);
+  render();
+</script>
+</body>
+</html>
